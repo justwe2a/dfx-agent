@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>DFX Agent · 本地工作台</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" id="task-navigation">
+        <div class="brand">
+          <span class="mark">d.</span><strong>DFX Agent</strong>
+        </div>
+        <button class="new-button" id="new-task">
+          <span>＋</span>新建任务
+        </button>
+        <button class="settings-link" id="assigned-tasks" style="display:none">◫ &nbsp;预配置任务</button>
+        <nav aria-label="任务记录">
+          <div class="nav-caption">最近任务</div>
+          <div id="history"></div>
+        </nav>
+        <div class="sidebar-bottom">
+          <button class="settings-link" id="import-run">导入已有结果</button
+          ><button class="settings-link" id="settings-open">
+            ⚙ &nbsp;工作台设置
+          </button>
+          <div class="team">DFX Agent<br /><span id="version"></span></div>
+        </div>
+      </aside>
+      <main class="main">
+        <header class="topbar">
+          <button id="navigation-toggle" aria-controls="task-navigation" aria-expanded="false">任务导航</button>
+          <div class="breadcrumb">
+            工作台 <span>/</span><strong id="page-title">新建任务</strong
+            ><span class="tag">LOCAL</span>
+          </div>
+          <span class="tag" id="service-mode">连接本机服务…</span>
+        </header>
+        <div class="content">
+          <div id="error" role="alert" hidden></div>
+          <section id="assignments-view" hidden>
+            <div class="task-header"><div><div class="eyebrow">YOUR TASKS</div>
+              <h1>选一个任务，交给 Agent。</h1>
+              <p class="lead" id="member-status">一次配置环境，逐题自主运行。</p></div>
+              <button class="secondary" id="environment-open">环境设置</button></div>
+            <div class="batch-toolbar"><span class="tag">Flash · 思考开启 / high</span>
+              <button class="primary" id="batch-export">导出全部反馈包 ↓</button></div>
+            <p id="feedback-download" role="status" hidden></p>
+            <div id="assignment-list" class="assignment-list"></div>
+          </section>
+          <section id="new-view">
+            <div class="welcome">
+              <div class="eyebrow">YOUR LOCAL CODING AGENT</div>
+              <h1>从一个问题，开始修复。</h1>
+              <p class="lead">描述目标，交给 Agent 探索、修复和验证。</p>
+              <div class="composer">
+                <div class="project-row">
+                  <button class="pill" id="project-open">
+                    ▱ &nbsp;选择本地项目</button
+                  ><label class="pill light-pill upload"
+                    >＋ 导入任务文本<input
+                      id="task-file"
+                      type="file"
+                      accept=".txt,.md"
+                      hidden
+                  /></label>
+                </div>
+                <textarea
+                  id="task"
+                  aria-label="任务描述"
+                  placeholder="描述故障现象、预期行为和需要完成的检查，无需提供修复步骤。"
+                ></textarea>
+                <div class="composer-bottom">
+                  <button class="model-label" id="model-open">
+                    DeepSeek Flash · 思考开启 / high</button
+                  ><button class="primary" id="start">核对并开始 ↗</button>
+                </div>
+              </div>
+              <div class="composer-foot">
+                <span id="input-mode"
+                  >零 API 夹具模式：固定动作，不是模型自主修复。</span
+                ><button class="ghost" id="demo">载入零 API 演示</button>
+              </div>
+              <div class="intro-row">
+                <article>
+                  <span>01 / INPUT</span>
+                  <h3>一次描述任务</h3>
+                  <p>项目、问题与预期行为。</p>
+                </article>
+                <article>
+                  <span>02 / EXECUTE</span>
+                  <h3>查看真实执行</h3>
+                  <p>实际工具动作与原始输出。</p>
+                </article>
+                <article>
+                  <span>03 / REVIEW</span>
+                  <h3>审阅交付证据</h3>
+                  <p>补丁、检查记录与提交声明。</p>
+                </article>
+              </div>
+            </div>
+          </section>
+          <section id="run-view" hidden>
+            <div class="task-header">
+              <div>
+                <h1 id="run-title"></h1>
+                <div class="meta" id="run-meta"></div>
+              </div>
+              <span class="state" id="run-status"></span>
+            </div>
+            <p class="info-note" id="run-notice" role="status" hidden></p>
+            <div class="result-tabs">
+              <button class="active" data-tab="activity">执行过程</button
+              ><button data-tab="overview">结果概览</button
+              ><button data-tab="changes">代码变更</button
+              ><button data-tab="records">原始记录</button>
+            </div>
+            <div class="workspace">
+              <div>
+                <div id="tab-activity">
+                  <div class="prompt">
+                    <span class="prompt-label">原始任务</span>
+                    <p id="run-prompt"></p>
+                  </div>
+                  <div class="timeline" id="events"></div>
+                  <div class="prompt" id="waiting-user" hidden>
+                      <strong>等待确认或环境处理</strong>
+                    <p id="waiting-reason"></p>
+                    <p id="waiting-request"></p>
+                    <p id="resume-problem" class="info-note"></p>
+                    <button class="primary" id="resume">已处理，继续本任务</button>
+                      <p class="info-note">涉及协议时，请先在应用中阅读并自行处理当前决定，再继续。保留原候选、完整历史和剩余额度；无需提供修复步骤，未处理请保持暂停。</p>
+                  </div>
+                  <div class="activity">
+                    <span id="activity-note">等待记录</span
+                    ><button class="secondary" id="stop">停止任务</button>
+                  </div>
+                  <p class="info-note">
+                    动作由 Agent
+                    决定。工具结果按实际记录展示，刷新页面不会再次派发。
+                  </p>
+                </div>
+                <div id="tab-overview" hidden>
+                  <div class="summary-card">
+                    <h2>最终声明与检查证据</h2>
+                    <p id="submission"></p>
+                    <div class="status-grid">
+                      <div>
+                        <span class="small">Agent 状态</span
+                        ><strong id="agent-state"></strong>
+                      </div>
+                      <div>
+                        <span class="small">自检证据</span
+                        ><strong id="self-check"></strong>
+                      </div>
+                      <div>
+                        <span class="small">已关联独立验收</span
+                        ><strong id="independent-state"></strong>
+                      </div>
+                    </div>
+                    <pre id="unverified"></pre>
+                  </div>
+                  <div class="result-actions">
+                    <button class="primary" id="workspace-open">
+                      查看工作副本</button
+                    ><a class="secondary" id="patch-download">下载补丁</a
+                    ><button class="secondary" id="export">导出摘要</button>
+                  </div>
+                  <p class="info-note">
+                    Submitted 仅表示 Agent
+                    已提交。独立验收与自检覆盖分别核对，不自动回填成功。
+                  </p>
+                  <details class="evaluation">
+                    <summary>关联已有独立评价（可选）</summary>
+                    <label for="evaluation-path">独立评价目录绝对路径</label
+                    ><input
+                      id="evaluation-path"
+                      placeholder="已有 posthoc 结果目录"
+                    />
+                    <p class="small">
+                      导出时沿用现有绑定核对，不执行新验收。不填时导出未关联摘要。
+                    </p>
+                  </details>
+                </div>
+                <div id="tab-changes" hidden>
+                  <div id="diff-status" class="info-note"></div>
+                  <div id="diff"></div>
+                </div>
+                <div id="tab-records" hidden>
+                  <div id="record-buttons"></div>
+                  <p class="info-note">
+                    原始记录仅在本机查看；导出摘要不自动打包全部日志。
+                  </p>
+                </div>
+              </div>
+              <aside class="details-pane">
+                <div class="detail-block">
+                  <h2>运行信息</h2>
+                  <div class="definition">
+                    <span>模式</span><span id="detail-mode"></span>
+                  </div>
+                  <div class="definition">
+                    <span>请求记录</span><span id="detail-calls"></span>
+                  </div>
+                  <div class="definition">
+                    <span>API 请求</span><span id="detail-api"></span>
+                  </div>
+                  <div class="definition">
+                    <span>耗时</span><span id="detail-time"></span>
+                  </div>
+                  <div class="definition">
+                    <span>总 tokens</span><span id="detail-tokens"></span>
+                  </div>
+                  <p id="detail-path" class="path"></p>
+                </div>
+                <div class="detail-block">
+                  <h2>本次变更</h2>
+                  <div id="changed-files"></div>
+                  <p id="run-problem"></p>
+                  <p>在独立工作副本中执行，原项目不自动覆盖。</p>
+                </div>
+              </aside>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+    <dialog class="drawer" id="settings">
+      <div class="drawer-head">
+        <h2>任务与运行配置</h2>
+        <button data-close="settings" aria-label="关闭设置">✕</button>
+      </div>
+      <p>配置在启动时固定；项目变化时重新核对资料范围。</p>
+      <label for="repo">项目绝对路径</label
+      ><input id="repo" placeholder="D:\projects\my-app" />
+      <label for="mode">执行模式</label
+      ><select id="mode">
+        <option value="fixture">零 API 固定夹具</option>
+        <option value="deepseek">DeepSeek Flash · 思考开启 / high</option>
+      </select>
+      <div id="fixture-fields">
+        <label for="responses">原生工具动作夹具 JSON</label
+        ><input id="responses" placeholder="本机绝对路径" />
+      </div>
+      <label for="scope">已审阅范围 JSON（真实模型必填）</label
+      ><input id="scope" /><button class="ghost" id="scope-preview">
+        查看范围内容
+      </button>
+      <label for="logs">已审阅日志目录（可选）</label><input id="logs" />
+      <label for="host">HarmonyOS 主机配置 JSON（可选）</label
+      ><input id="host" />
+      <details class="advanced">
+        <summary>高级设置</summary>
+        <label for="max_steps">请求上限（含末轮 finish）</label
+        ><input type="number" min="2" id="max_steps" value="40" /><label
+          for="max_output_tokens"
+          >每次输出 tokens 上限</label
+        ><input type="number" min="1" id="max_output_tokens" value="32768" />
+        <div class="field-pair">
+          <div>
+            <label for="command_timeout">命令 / HDC 秒</label
+            ><input type="number" min="1" id="command_timeout" value="60" />
+          </div>
+          <div>
+            <label for="script_timeout">脚本秒</label
+            ><input type="number" min="1" id="script_timeout" value="120" />
+          </div>
+          <div>
+            <label for="build_timeout">构建秒</label
+            ><input type="number" min="1" id="build_timeout" value="600" />
+          </div>
+          <div>
+            <label for="model_timeout">HTTP 秒</label
+            ><input type="number" min="1" id="model_timeout" value="180" />
+          </div>
+        </div>
+        <p class="small">完整历史 1M / 10% 预留；脚本保留既有35秒有界收尾。</p>
+        <label class="check"
+          ><input
+            id="allow_dependency_install"
+            type="checkbox"
+          />允许本次依赖安装</label
+        ><label class="check"
+          ><input id="allow_device" type="checkbox" />允许本次设备操作</label
+        ><label class="check"
+          ><input id="allow_system_navigation" type="checkbox" />允许 Back /
+          Home</label
+        ><label class="check"
+          ><input
+            id="allow_screen_unlock"
+            type="checkbox"
+          />允许普通无密码锁屏恢复</label
+        >
+      </details>
+      <p class="small" id="local-config"></p>
+      <button class="primary" data-close="settings">保存本页设置</button>
+    </dialog>
+    <dialog class="drawer" id="confirm">
+      <div class="drawer-head">
+        <h2>开始本次任务</h2>
+        <button data-close="confirm" aria-label="关闭核对">✕</button>
+      </div>
+      <pre id="launch-review"></pre>
+      <p>
+        启动后由 Agent 自主执行。本次会创建新工作副本，不复用旧任务额度或补丁。
+      </p>
+      <button class="primary" id="confirm-start">开始任务</button>
+    </dialog>
+    <dialog class="drawer file-dialog" id="file-dialog">
+      <div class="drawer-head">
+        <h2 id="file-title">原始记录</h2>
+        <button data-close="file-dialog" aria-label="关闭记录">✕</button>
+      </div>
+      <div id="file-content"></div>
+      <a id="file-download" class="secondary">下载完整文件</a>
+    </dialog>
+    <dialog class="drawer" id="environment-dialog">
+      <div class="drawer-head"><h2>一次配置本机环境</h2><button data-close="environment-dialog" aria-label="关闭环境设置">✕</button></div>
+      <p class="small">官方数据自行下载；这里只读取本地目录，不上传数据集。已有配置会保留。</p>
+      <label for="member-select">组员</label><select id="member-select"></select>
+      <label for="dataset-root">官方数据目录</label><input id="dataset-root" placeholder="D:\DFX\data-master（自动识别data_B）" />
+      <label for="deveco-root">DevEco Studio 安装目录</label><input id="deveco-root" list="deveco-candidates" placeholder="自动识别后可修改" /><datalist id="deveco-candidates"></datalist>
+      <button class="ghost" id="environment-detect">重新识别安装位置</button>
+      <label for="member-device">测试设备标识</label><input id="member-device" list="device-candidates" placeholder="启动模拟器或连接兼容真机后识别" /><datalist id="device-candidates"></datalist>
+      <button class="ghost" id="device-detect">识别已连接设备</button>
+      <p class="small" id="device-status" role="status"></p>
+      <label class="check"><input type="checkbox" id="member-unlock" />此专用测试设备没有密码、PIN或图案，允许Agent自行唤醒和滑动解锁</label>
+      <p class="small">开始任务后先自动检查SDK、设备和原生依赖，再调用模型。真机须另具备本机签名与调试条件；执行包不含证书、不自动签名。</p>
+      <p class="small" id="member-key-status"></p><p class="small">API密钥使用本机 DEEPSEEK_API_KEY 环境变量；无需逐题设置，不写入反馈包。</p>
+      <button class="primary" id="environment-save">保存并查看任务</button>
+    </dialog>
+    <dialog class="drawer" id="assignment-dialog">
+      <div class="drawer-head"><h2 id="assignment-title">任务</h2><button data-close="assignment-dialog" aria-label="关闭任务">✕</button></div>
+      <p class="small" id="assignment-id"></p><p id="assignment-issue" class="small"></p>
+      <pre id="assignment-prompt" class="task-description"></pre>
+      <div id="prepared-summary" class="small"></div>
+      <details><summary>资料范围与检查要求</summary><p id="assignment-policy"></p><pre id="assignment-check" class="task-description"></pre></details>
+      <p class="small">最多120请求 · 每次32768输出tokens；由Agent决定修复与自检步骤。原始工程不覆盖，运行不自动重派。</p>
+      <button class="primary" id="assignment-start">准备并开始任务 ↗</button>
+      <details class="evaluation"><summary>记录结果或阻塞原因</summary>
+        <label for="member-verdict">独立观察（不覆盖Agent结果）</label>
+        <select id="member-verdict"><option value="NOT_RUN">未执行检查</option><option value="PASS">已核对通过</option><option value="FAIL">业务检查失败</option><option value="BLOCKED">环境或资料阻塞</option><option value="UNVERIFIED">尚不能确定</option></select>
+        <label for="member-notes">实际观察、错误与未验证项</label><textarea id="member-notes" rows="4"></textarea>
+        <button class="secondary" id="member-feedback-save">保存反馈</button></details>
+    </dialog>
+    <div class="toast" id="toast" role="status" hidden></div>
+  </body>
+</html>
