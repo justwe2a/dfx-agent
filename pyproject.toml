@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dfx-self-heal"
+version = "0.20.2"
+description = "Task-driven repair agent with HarmonyOS evaluation tools"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+agent = ["mini-swe-agent==2.4.6", "tokenizers==0.23.3"]
+ui = ["fastapi==0.162.0", "uvicorn==0.54.0"]
+
+[project.scripts]
+dfx = "dfx_agent.cli:main"
+dfx-ui = "dfx_agent.workbench:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+dfx_agent = ["skills/*/SKILL.md", "data/deepseek-v4/*.json", "web/*", "data/member-tasks/*.json"]
