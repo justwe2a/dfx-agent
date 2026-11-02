@@ -1,0 +1,6 @@
+{
+  "repo": "D:/projects/sample-app",
+  "outbound_approved": false,
+  "exclude": ["private", "secrets", "logs", "reports", "*.p7b", "*.cer"],
+  "read_only": ["README.md"]
+}
